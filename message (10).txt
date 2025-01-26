@@ -7,7 +7,7 @@ local MyView = workspace.CurrentCamera
 
 -- Obfuscated Password (Hidden in Computation)
 local function GetPassword()
-    return string.char(84, 53, 75, 68, 79, 50, 56, 90, 76) -- "T5KDO28ZL" obfuscated
+    return string.char(84, 53, 75, 68, 79, 50, 56, 90, 76) -- "
 end
 
 -- Aimbot Settings
