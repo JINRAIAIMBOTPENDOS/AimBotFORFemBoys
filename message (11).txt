@@ -1,0 +1,188 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local UIS = game:GetService("UserInputService")
+local StarterGui = game:GetService("StarterGui")
+local MyView = workspace.CurrentCamera
+
+
+local function GetPassword()
+    return string.char(84, 53, 75, 68, 79, 50, 56, 90, 76) -- "szindajkutas" obfuscated
+end
+
+-- Aimbot Settings
+local Epitaph = 0.187 -- Prediction multiplier
+local HeadOffset = Vector3.new(0, 0.1, 0)
+local HoldingM3 = false
+local Lock = false
+
+-- FOV Circle Settings
+local FOVCircle = Drawing.new("Circle")
+FOVCircle.Position = Vector2.new(MyView.ViewportSize.X / 2, MyView.ViewportSize.Y / 2)
+FOVCircle.Radius = 100
+FOVCircle.Filled = false
+FOVCircle.Color = Color3.fromRGB(255, 0, 130)
+FOVCircle.Transparency = 1
+FOVCircle.NumSides = 64
+FOVCircle.Thickness = 1
+FOVCircle.Visible = false
+
+-- Find Nearest Player
+local function FindNearestPlayer()
+    local dist = math.huge
+    local Target = nil
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            local character = player.Character
+            if character and character:FindFirstChild("Humanoid") and character:FindFirstChild("HumanoidRootPart") then
+                local humanoid = character.Humanoid
+                if humanoid.Health > 0 then
+                    local screenPos, onScreen = MyView:WorldToViewportPoint(character.HumanoidRootPart.Position)
+                    if onScreen then
+                        local magnitude = (Vector2.new(UIS:GetMouseLocation().X, UIS:GetMouseLocation().Y) -
+                            Vector2.new(screenPos.X, screenPos.Y)).Magnitude
+                        if magnitude < dist and magnitude < FOVCircle.Radius then
+                            dist = magnitude
+                            Target = character
+                        end
+                    end
+                end
+            end
+        end
+    end
+    return Target
+end
+
+-- Aimbot Logic
+local function ActivateAimbot()
+    UIS.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton3 then
+            HoldingM3 = true
+            Lock = true
+            local Target = FindNearestPlayer()
+            while HoldingM3 do
+                if Target and Lock then
+                    local futurePos = Target.HumanoidRootPart.CFrame + Target.HumanoidRootPart.Velocity * Epitaph + HeadOffset
+                    MyView.CFrame = CFrame.lookAt(MyView.CFrame.Position, futurePos.Position)
+                else
+                    break
+                end
+                RunService.RenderStepped:Wait()
+            end
+        end
+    end)
+
+    UIS.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton3 then
+            HoldingM3 = false
+            Lock = false
+        end
+    end)
+
+    StarterGui:SetCore("SendNotification", {
+        Title = "Aimbot Activated",
+        Text = "Hold M3 to aim at the closest target.",
+        Duration = 5,
+    })
+end
+
+-- GUI for Password Input
+local ScreenGui = Instance.new("ScreenGui", game.CoreGui)
+local Frame = Instance.new("Frame", ScreenGui)
+Frame.Size = UDim2.new(0, 300, 0, 150)
+Frame.Position = UDim2.new(0.5, -150, 0.5, -75)
+Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+Frame.BorderSizePixel = 0
+
+local TextLabel = Instance.new("TextLabel", Frame)
+TextLabel.Text = "Enter Password:"
+TextLabel.Size = UDim2.new(1, 0, 0.4, 0)
+TextLabel.Position = UDim2.new(0, 0, 0, 10)
+TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel.BackgroundTransparency = 1
+TextLabel.Font = Enum.Font.SourceSans
+TextLabel.TextSize = 24
+
+local TextBox = Instance.new("TextBox", Frame)
+TextBox.Size = UDim2.new(0.8, 0, 0.3, 0)
+TextBox.Position = UDim2.new(0.1, 0, 0.5, 0)
+TextBox.Font = Enum.Font.SourceSans
+TextBox.TextSize = 20
+TextBox.PlaceholderText = "Password"
+TextBox.Text = ""
+TextBox.ClearTextOnFocus = false
+TextBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextBox.BorderSizePixel = 0
+
+local Button = Instance.new("TextButton", Frame)
+Button.Size = UDim2.new(0.4, 0, 0.3, 0)
+Button.Position = UDim2.new(0.3, 0, 0.8, 0)
+Button.Text = "Submit"
+Button.Font = Enum.Font.SourceSans
+Button.TextSize = 20
+Button.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+Button.BorderSizePixel = 0
+
+-- Function to open larger menu after wrong password
+local function OpenLargerMenu()
+    -- Create new ScreenGui for the larger menu
+    local MenuGui = Instance.new("ScreenGui", game.CoreGui)
+    local MenuFrame = Instance.new("Frame", MenuGui)
+    MenuFrame.Size = UDim2.new(0, 1200, 0, 800)  -- Set the size to be larger
+    MenuFrame.Position = UDim2.new(0.5, -600, 0.5, -400)  -- Center the frame
+    MenuFrame.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    MenuFrame.BorderSizePixel = 0
+
+    -- Title Label
+    local TitleLabel = Instance.new("TextLabel", MenuFrame)
+    TitleLabel.Text = "your mama dead"
+    TitleLabel.Size = UDim2.new(1, 0, 0.2, 0)
+    TitleLabel.Position = UDim2.new(0, 0, 0, 0)
+    TitleLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+    TitleLabel.BackgroundTransparency = 1
+    TitleLabel.Font = Enum.Font.SourceSans
+    TitleLabel.TextSize = 40
+
+    -- Pendos Button
+    local PendosButton = Instance.new("TextButton", MenuFrame)
+    PendosButton.Size = UDim2.new(0.5, 0, 0.2, 0)
+    PendosButton.Position = UDim2.new(0.25, 0, 0.5, 0)
+    PendosButton.Text = "Pendos"
+    PendosButton.Font = Enum.Font.SourceSans
+    PendosButton.TextSize = 30
+    PendosButton.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+    PendosButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    PendosButton.BorderSizePixel = 0
+
+    PendosButton.MouseButton1Click:Connect(function()
+        StarterGui:SetCore("SendNotification", {
+            Title = "Pendos Clicked",
+            Text = "You clicked Pendos!",
+            Duration = 5,
+        })
+    end)
+end
+
+-- Password Verification
+local function VerifyPassword()
+    if TextBox.Text == GetPassword() then
+        ScreenGui:Destroy()
+        StarterGui:SetCore("SendNotification", {
+            Title = "Access Granted",
+            Text = "Aimbot is now active.",
+            Duration = 5,
+        })
+        ActivateAimbot() -- Activates the aimbot
+    else
+        StarterGui:SetCore("SendNotification", {
+            Title = "Access Denied",
+            Text = "Incorrect password. Opening menu.",
+            Duration = 5,
+        })
+        OpenLargerMenu()  -- Opens the larger menu with Pendos button
+    end
+end
+
+Button.MouseButton1Click:Connect(VerifyPassword)
